@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using TrackerLibrary;
+using TrackerLibrary.DataAccess;
+using TrackerLibrary.Models;
 
 namespace TrackerUI
 {
@@ -27,10 +29,7 @@ namespace TrackerUI
                 model.PlaceNumber = int.Parse(placeNumberValue.Text);
                 model.PrizeAmount = decimal.Parse(prizeAmountValue.Text);
                 model.PrizePercentage = double.Parse(prizePercentageValue.Text);
-                foreach(IDataConnection db in GlobalConfig.Connections)
-                {
-                    db.CreatePrize(model);
-                }
+                GlobalConfig.Connection.CreatePrize(model);
                 placeNameValue.Text = "";
                 placeNumberValue.Text = "";
                 prizeAmountValue.Text = "0";
@@ -72,7 +71,7 @@ namespace TrackerUI
             {
                 output = false;
             }
-            if (prizePercentage <= 0 || prizePercentage > 100)
+            if (prizePercentage < 0 || prizePercentage > 100)
             {
                 output = false;
             }

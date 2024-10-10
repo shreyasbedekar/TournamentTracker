@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Configuration;
+using TrackerLibrary;
+
 namespace TrackerUI
 {
     internal static class Program
@@ -12,8 +15,14 @@ namespace TrackerUI
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
+            // Load the configuration from appsettings.json
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory()) // Set the base path to the current directory
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)  // Load appsettings.json
+                .Build();
+
             // Initialize the database connections
-            TrackerLibrary.GlobalConfig.InitializeConnections(true, true);
+            GlobalConfig.InitializeConnections(config,DatabaseType.Postgres);
             Application.Run(new CreatePrizeForm());
 
             //Application.Run(new TournamentDashboardForm());
