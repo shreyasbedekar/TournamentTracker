@@ -22,7 +22,7 @@ namespace TrackerUI
                 .Build();
 
             // Initialize the database connections
-            GlobalConfig.InitializeConnections(config,DatabaseType.Postgres);
+            GlobalConfig.InitializeConnections(config,DatabaseType.TextFile);
             Application.Run(new CreatePrizeForm());
 
             //Application.Run(new TournamentDashboardForm());

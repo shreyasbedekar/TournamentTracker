@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TrackerLibrary.DataAccess;
+using TrackerLibrary.DataAccess.TextHelpers;
 
 namespace TrackerLibrary
 {
@@ -15,6 +16,7 @@ namespace TrackerLibrary
         public static void InitializeConnections(IConfiguration config, DatabaseType db)
         {
             _config = config;
+            TextConnectorProcessor.Initialize(config);
             if (db == DatabaseType.Postgres)
             {
                 // TODO - Set up the SQL Connector properly
