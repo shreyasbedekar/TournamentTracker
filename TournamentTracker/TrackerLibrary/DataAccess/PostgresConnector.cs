@@ -12,10 +12,27 @@ namespace TrackerLibrary.DataAccess
 {
     public class PostgresConnector : IDataConnection
     {
+        private const string db = "Tournaments";
+        public PersonModel CreatePerson(PersonModel model)
+        {
+            using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            {
+                var p = new DynamicParameters();
+                p.Add("@FirstName", model.FirstName);
+                p.Add("@LastName", model.LastName);
+                p.Add("@EmailAddress", model.EmailAddress);
+                p.Add("@CellphoneNumber", model.CellphoneNumber);
+                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+                connection.Execute("SELECT spPeople_Insert(@FirstName, @LastName, @EmailAddress, @CellphoneNumber);", p);
+                model.Id = p.Get<int>("@id");
+                return model;
+            }
+        }
+
         // TODO - Make the CreatePrize method actually save to the database
         public PrizeModel CreatePrize(PrizeModel model)
         {
-           using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString("Tournaments")))
+           using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
            {
                 var p = new DynamicParameters();
                 p.Add("@PlaceNumber", model.PlaceNumber);
@@ -26,6 +43,14 @@ namespace TrackerLibrary.DataAccess
                 var result = connection.Query<int>("SELECT spPrizes_Insert(@PlaceNumber, @PlaceName, @PrizeAmount, @PrizePercentage);", p);
                 model.Id = result.First();
                 return model;
+            }
+        }
+
+        public List<PersonModel> GetPerson_All()
+        {
+            using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            {
+                return connection.Query<PersonModel>("SELECT * FROM people").ToList();
             }
         }
     }
