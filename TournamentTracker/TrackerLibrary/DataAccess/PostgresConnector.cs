@@ -46,6 +46,26 @@ namespace TrackerLibrary.DataAccess
             }
         }
 
+        public TeamModel CreateTeam(TeamModel model)
+        {
+            using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            {
+                var p = new DynamicParameters();
+                p.Add("@TeamName", model.TeamName);
+                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+                connection.Execute("SELECT spTeams_Insert(@TeamName);", p);
+                model.Id = p.Get<int>("@id");
+                foreach (PersonModel tm in model.TeamMembers)
+                {
+                    p = new DynamicParameters();
+                    p.Add("@TeamId", model.Id);
+                    p.Add("@PersonId", tm.Id);
+                    connection.Execute("SELECT spTeamMembers_Insert(@TeamId, @PersonId);", p);
+                }
+                return model;
+            }
+        }
+
         public List<PersonModel> GetPerson_All()
         {
             using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
