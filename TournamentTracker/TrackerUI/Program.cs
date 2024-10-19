@@ -22,8 +22,8 @@ namespace TrackerUI
                 .Build();
 
             // Initialize the database connections
-            GlobalConfig.InitializeConnections(config,DatabaseType.Postgres);
-            Application.Run(new CreateTeamForm());
+            GlobalConfig.InitializeConnections(config,DatabaseType.TextFile);
+            Application.Run(new CreateTournamentForm());
 
             //Application.Run(new TournamentDashboardForm());
         }
