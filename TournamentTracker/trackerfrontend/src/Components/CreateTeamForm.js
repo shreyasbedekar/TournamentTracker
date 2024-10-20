@@ -8,6 +8,7 @@ const CreateTeamForm = () => {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [memberSelection, setMemberSelection] = useState('');
   const [newMember, setNewMember] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+  const [validationMessage, setValidationMessage] = useState(''); // For form validation
 
   useEffect(() => {
     axios.get('https://localhost:7159/api/People')
@@ -38,22 +39,27 @@ const CreateTeamForm = () => {
   };
 
   const addNewMember = () => {
-    if (newMember.firstName && newMember.lastName && newMember.email && newMember.phone) {
-      const newId = Math.max(...availableMembers.map(m => m.id), 0) + 1;
-      const newMemberWithId = { id: newId, ...newMember, fullName: `${newMember.firstName} ${newMember.lastName}` };
-      setAvailableMembers([...availableMembers, newMemberWithId]);
-      setNewMember({ firstName: '', lastName: '', email: '', phone: '' });
-    } else {
-      alert('Please fill in all the fields for the new member.');
+    if (!newMember.firstName || !newMember.lastName || !newMember.email || !newMember.phone) {
+      setValidationMessage('Please fill in all fields for the new member.');
+      return;
     }
-  };
 
-  const isValidForm = () => teamName.trim().length > 0 && selectedMembers.length > 0;
+    const newId = Math.max(...availableMembers.map(m => m.id), 0) + 1;
+    const newMemberWithId = { id: newId, ...newMember, fullName: `${newMember.firstName} ${newMember.lastName}` };
+    setAvailableMembers([...availableMembers, newMemberWithId]);
+    setNewMember({ firstName: '', lastName: '', email: '', phone: '' });
+    setValidationMessage(''); // Clear validation message
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isValidForm()) {
-      alert('Please enter a team name and select at least one member.');
+
+    if (!teamName.trim()) {
+      setValidationMessage('Please enter a team name.');
+      return;
+    }
+    if (selectedMembers.length === 0) {
+      setValidationMessage('Please select at least one team member.');
       return;
     }
 
@@ -72,6 +78,7 @@ const CreateTeamForm = () => {
       alert('Team created successfully!');
       setTeamName('');
       setSelectedMembers([]);
+      setValidationMessage(''); // Clear validation message
     } catch (error) {
       alert('There was an error creating the team.');
     }
@@ -164,7 +171,9 @@ const CreateTeamForm = () => {
           <button type="button" onClick={addNewMember} className="btn-add">Create Member</button>
         </div>
 
-        <button type="submit" className="btn-submit" disabled={!isValidForm()}>Create Team</button>
+        {validationMessage && <p className="validation-message">{validationMessage}</p>} {/* Validation message */}
+
+        <button type="submit" className="btn-submit" disabled={!teamName || selectedMembers.length === 0}>Create Team</button>
       </form>
     </div>
   );
