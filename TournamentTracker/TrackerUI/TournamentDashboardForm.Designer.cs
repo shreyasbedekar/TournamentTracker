@@ -94,6 +94,7 @@
             CreateTournamentButton.TabIndex = 27;
             CreateTournamentButton.Text = "Create Tournament";
             CreateTournamentButton.UseVisualStyleBackColor = true;
+            CreateTournamentButton.Click += CreateTournamentButton_Click;
             // 
             // TournamentDashboardForm
             // 
@@ -107,7 +108,7 @@
             Controls.Add(loadExistingTournamentLabel);
             Controls.Add(headerLabel);
             Font = new Font("Segoe UI", 16.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            Margin = new Padding(6, 6, 6, 6);
+            Margin = new Padding(6);
             Name = "TournamentDashboardForm";
             Text = "Tournament Dashboard";
             ResumeLayout(false);

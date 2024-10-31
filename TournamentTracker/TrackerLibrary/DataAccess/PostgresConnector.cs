@@ -33,8 +33,8 @@ namespace TrackerLibrary.DataAccess
         // TODO - Make the CreatePrize method actually save to the database
         public PrizeModel CreatePrize(PrizeModel model)
         {
-           using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
-           {
+            using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            {
                 var p = new DynamicParameters();
                 p.Add("@PlaceNumber", model.PlaceNumber);
                 p.Add("@PlaceName", model.PlaceName);
@@ -49,7 +49,7 @@ namespace TrackerLibrary.DataAccess
 
         public TeamModel CreateTeam(TeamModel model)
         {
-            using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
                 var p = new DynamicParameters();
                 p.Add("@TeamName", model.TeamName);
@@ -69,7 +69,7 @@ namespace TrackerLibrary.DataAccess
 
         public void CreateTournament(TournamentModel model)
         {
-            using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
                 SaveTournament(connection, model);
                 SaveTournamentPrizes(connection, model);
@@ -80,9 +80,9 @@ namespace TrackerLibrary.DataAccess
 
         private void SaveTournamentRounds(IDbConnection connection, TournamentModel model)
         {
-            foreach (List<MatchupModel> round in model.Rounds)
+            foreach (RoundModel round in model.Rounds)
             {
-                foreach (MatchupModel matchup in round)
+                foreach (MatchupModel matchup in round.Matchups)
                 {
                     var p = new DynamicParameters();
                     p.Add("@TournamentId", model.Id);
@@ -120,14 +120,14 @@ namespace TrackerLibrary.DataAccess
                 }
             }
         }
-        private void SaveTournament(IDbConnection connection,TournamentModel model)
+        private void SaveTournament(IDbConnection connection, TournamentModel model)
         {
-                var p = new DynamicParameters();
-                p.Add("@TournamentName", model.TournamentName);
-                p.Add("@EntryFee", model.EntryFee);
-                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
-                connection.Execute("SELECT spTournaments_Insert(@TournamentName, @EntryFee);", p);
-                model.Id = p.Get<int>("@id");
+            var p = new DynamicParameters();
+            p.Add("@TournamentName", model.TournamentName);
+            p.Add("@EntryFee", model.EntryFee);
+            p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+            connection.Execute("SELECT spTournaments_Insert(@TournamentName, @EntryFee);", p);
+            model.Id = p.Get<int>("@id");
         }
 
         private void SaveTournamentPrizes(IDbConnection connection, TournamentModel model)
@@ -156,7 +156,7 @@ namespace TrackerLibrary.DataAccess
 
         public List<PersonModel> GetPerson_All()
         {
-            using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
                 return connection.Query<PersonModel>("SELECT * FROM people").ToList();
             }
@@ -164,7 +164,7 @@ namespace TrackerLibrary.DataAccess
 
         public List<TeamModel> GetTeam_All()
         {
-            using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
                 var teams = connection.Query<TeamModel>("SELECT * FROM spTeam_GetAll()").ToList();
                 foreach (TeamModel team in teams)
@@ -176,5 +176,59 @@ namespace TrackerLibrary.DataAccess
                 return teams;
             }
         }
+
+        public List<TournamentModel> GetTournament_All()
+        {
+            List<TournamentModel> output;
+
+            using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+            {
+                output = connection.Query<TournamentModel>("SELECT * FROM spTournaments_GetAll()").ToList();
+
+                foreach (TournamentModel t in output)
+                {
+
+                    t.Prizes = connection.Query<PrizeModel>("SELECT * FROM spPrizes_GetByTournament(@TournamentId)", new { TournamentId = t.Id }).ToList();
+
+                    t.EnteredTeams = connection.Query<TeamModel>("SELECT * FROM spTeams_GetByTournament(@TournamentId)", new { TournamentId = t.Id }).ToList();
+                    foreach (TeamModel tm in t.EnteredTeams)
+                    {
+                        tm.TeamMembers = connection.Query<PersonModel>(
+                            "SELECT * FROM teammembers tm INNER JOIN people p ON tm.PersonId = p.Id WHERE tm.TeamId = @TeamId",
+                            new { TeamId = tm.Id }
+                        ).ToList();
+                    }
+                    List<MatchupModel> matchups = connection.Query<MatchupModel>("SELECT * FROM spMatchups_GetByTournament(@TournamentId)", new { TournamentId = t.Id }).ToList();
+                    foreach (MatchupModel m in matchups)
+                    {
+                        m.Entries = connection.Query<MatchupEntryModel>("SELECT * FROM spMatchupEntries_GetByMatchup(@MatchupId)", new { MatchupId = m.Id }).ToList();
+
+                        // Set Winner and TeamCompeting properties for entries
+                        List<TeamModel> allTeams = GetTeam_All();
+                        if (m.WinnerId > 0)
+                        {
+                            m.Winner = allTeams.FirstOrDefault(x => x.Id == m.WinnerId);
+                        }
+
+                        foreach (MatchupEntryModel me in m.Entries)
+                        {
+                            if (me.TeamCompetingId > 0)
+                            {
+                                me.TeamCompeting = allTeams.FirstOrDefault(x => x.Id == me.TeamCompetingId);
+                            }
+
+                            if (me.ParentMatchupId > 0)
+                            {
+                                me.ParentMatchup = matchups.FirstOrDefault(x => x.Id == me.ParentMatchupId);
+                            }
+                        }
+                    }
+                    t.Rounds = new List<RoundModel> { new RoundModel { Matchups = matchups } };
+                }
+            }
+            return output;
+        }
+
+
     }
 }

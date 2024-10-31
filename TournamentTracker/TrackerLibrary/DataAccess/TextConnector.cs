@@ -82,6 +82,11 @@ namespace TrackerLibrary.DataAccess
             tournaments.SaveToTournamentFile(TournamentFile);
         }
 
+        public void DeleteTournament(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<PersonModel> GetPerson_All()
         {
             List<PersonModel> people = PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
@@ -93,5 +98,9 @@ namespace TrackerLibrary.DataAccess
             return TeamFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
         }
 
+        public List<TournamentModel> GetTournament_All()
+        {
+            return TournamentFile.FullFilePath().LoadFile().ConvertToTournamentModels(TeamFile, PeopleFile, PrizesFile);
+        }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,11 +10,15 @@ namespace TrackerLibrary.Models
 {
     public class TournamentModel
     {
+        [Key]
+        [Column("id")]
         public int Id { get; set; }
+        [Column("tournamentname")]
         public string TournamentName { get; set; }
+        [Column("entryfee")]
         public decimal EntryFee { get; set; }
         public List<TeamModel> EnteredTeams { get; set; } = new List<TeamModel>();
         public List<PrizeModel> Prizes { get; set; } = new List<PrizeModel>();
-        public List<List<MatchupModel>> Rounds { get; set; } = new List<List<MatchupModel>>();
+        public List<RoundModel> Rounds { get; set; } = new List<RoundModel>();
     }
 }
