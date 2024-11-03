@@ -183,7 +183,7 @@ namespace TrackerLibrary.DataAccess
 
             using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
-                output = connection.Query<TournamentModel>("SELECT * FROM spTournaments_GetAll()").ToList();
+                output = connection.Query<TournamentModel>("SELECT * FROM spTournaments_GetAll()").DistinctBy(t=>t.Id).ToList();
 
                 foreach (TournamentModel t in output)
                 {
@@ -199,10 +199,17 @@ namespace TrackerLibrary.DataAccess
                         ).ToList();
                     }
                     List<MatchupModel> matchups = connection.Query<MatchupModel>("SELECT * FROM spMatchups_GetByTournament(@TournamentId)", new { TournamentId = t.Id }).ToList();
+                    foreach(var matchup in matchups)
+                    {
+                        Console.WriteLine($"Matchup id: {matchup.Id} Round: {matchup.MatchupRound}, Winner: {matchup.WinnerId}");
+                    }
                     foreach (MatchupModel m in matchups)
                     {
                         m.Entries = connection.Query<MatchupEntryModel>("SELECT * FROM spMatchupEntries_GetByMatchup(@MatchupId)", new { MatchupId = m.Id }).ToList();
-
+                        foreach (var entry in m.Entries)
+                        {
+                            Console.WriteLine($"Entry ID: {entry.Id}, TeamCompetingId: {entry.TeamCompetingId}, ParentMatchupId: {entry.ParentMatchupId}");
+                        }
                         // Set Winner and TeamCompeting properties for entries
                         List<TeamModel> allTeams = GetTeam_All();
                         if (m.WinnerId > 0)
@@ -223,7 +230,12 @@ namespace TrackerLibrary.DataAccess
                             }
                         }
                     }
-                    t.Rounds = new List<RoundModel> { new RoundModel { Matchups = matchups } };
+                    t.Rounds = new List<RoundModel>();
+                    var groupedMatchups = matchups.GroupBy(x => x.MatchupRound).ToList();
+                    foreach (var group in groupedMatchups)
+                    {
+                        t.Rounds.Add(new RoundModel { Matchups = group.ToList() });
+                    }
                 }
             }
             return output;

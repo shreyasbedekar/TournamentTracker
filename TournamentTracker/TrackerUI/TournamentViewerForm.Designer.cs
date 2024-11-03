@@ -84,6 +84,7 @@
             roundDropDown.Name = "roundDropDown";
             roundDropDown.Size = new Size(259, 45);
             roundDropDown.TabIndex = 3;
+            roundDropDown.SelectedIndexChanged += roundDropDown_SelectedIndexChanged;
             // 
             // unplayedOnlyCheckbox
             // 
@@ -97,7 +98,6 @@
             unplayedOnlyCheckbox.TabIndex = 4;
             unplayedOnlyCheckbox.Text = "Unplayed Only";
             unplayedOnlyCheckbox.UseVisualStyleBackColor = true;
-            unplayedOnlyCheckbox.CheckedChanged += checkBox1_CheckedChanged;
             // 
             // matchupListBox
             // 
@@ -108,6 +108,7 @@
             matchupListBox.Name = "matchupListBox";
             matchupListBox.Size = new Size(382, 372);
             matchupListBox.TabIndex = 5;
+            matchupListBox.SelectedIndexChanged += matchupListBox_SelectedIndexChanged;
             // 
             // TeamOneName
             // 
@@ -155,7 +156,6 @@
             teamTwoScoreLabel.Size = new Size(104, 46);
             teamTwoScoreLabel.TabIndex = 10;
             teamTwoScoreLabel.Text = "Score";
-            teamTwoScoreLabel.Click += teamTwoScoreLabel_Click;
             // 
             // teamTwoName
             // 
@@ -215,10 +215,9 @@
             Controls.Add(tournamentName);
             Controls.Add(headerLabel);
             Font = new Font("Segoe UI", 16.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            Margin = new Padding(6, 6, 6, 6);
+            Margin = new Padding(6);
             Name = "TournamentViewerForm";
             Text = "Tournament Viewer";
-            Load += TournamentViewerForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }
