@@ -98,6 +98,7 @@
             unplayedOnlyCheckbox.TabIndex = 4;
             unplayedOnlyCheckbox.Text = "Unplayed Only";
             unplayedOnlyCheckbox.UseVisualStyleBackColor = true;
+            unplayedOnlyCheckbox.CheckedChanged += unplayedOnlyCheckbox_CheckedChanged;
             // 
             // matchupListBox
             // 
@@ -187,12 +188,13 @@
             scoreButton.FlatStyle = FlatStyle.Flat;
             scoreButton.Font = new Font("Segoe UI Semibold", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             scoreButton.ForeColor = SystemColors.MenuHighlight;
-            scoreButton.Location = new Point(804, 434);
+            scoreButton.Location = new Point(804, 458);
             scoreButton.Name = "scoreButton";
             scoreButton.Size = new Size(133, 62);
             scoreButton.TabIndex = 13;
             scoreButton.Text = "Score";
             scoreButton.UseVisualStyleBackColor = true;
+            scoreButton.Click += scoreButton_Click;
             // 
             // TournamentViewerForm
             // 
