@@ -116,11 +116,11 @@ namespace TrackerUI
             TournamentLogic.CreateRounds(tm);
 
             GlobalConfig.Connection.CreateTournament(tm);
-
-            MessageBox.Show("Tournament created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            Close();
-
-
+            int startingRound = tm.Rounds.First().RoundNumber;
+            TournamentLogic.AlertUsersToNewRound(startingRound, tm.Rounds.First());
+            TournamentViewerForm frm = new TournamentViewerForm(tm);
+            frm.Show();
+            this.Close();
         }
     }
 }

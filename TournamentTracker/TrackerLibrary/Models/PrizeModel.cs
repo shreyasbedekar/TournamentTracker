@@ -21,5 +21,6 @@ namespace TrackerLibrary.Models
         public decimal PrizeAmount { get; set; }
         [Column("prizepercentage")]
         public double PrizePercentage { get; set; }
+
     }
 }

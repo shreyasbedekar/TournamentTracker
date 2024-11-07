@@ -14,7 +14,7 @@ namespace TrackerLibrary.DataAccess
     public class PostgresConnector : IDataConnection
     {
         private const string db = "Tournaments";
-        public PersonModel CreatePerson(PersonModel model)
+        public void CreatePerson(PersonModel model)
         {
             using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
@@ -26,12 +26,11 @@ namespace TrackerLibrary.DataAccess
                 p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
                 connection.Execute("SELECT spPeople_Insert(@FirstName, @LastName, @EmailAddress, @CellphoneNumber);", p);
                 model.Id = p.Get<int>("@id");
-                return model;
             }
         }
 
         // TODO - Make the CreatePrize method actually save to the database
-        public PrizeModel CreatePrize(PrizeModel model)
+        public void CreatePrize(PrizeModel model)
         {
             using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
@@ -43,11 +42,10 @@ namespace TrackerLibrary.DataAccess
                 p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
                 var result = connection.Query<int>("SELECT spPrizes_Insert(@PlaceNumber, @PlaceName, @PrizeAmount, @PrizePercentage);", p);
                 model.Id = result.First();
-                return model;
             }
         }
 
-        public TeamModel CreateTeam(TeamModel model)
+        public void CreateTeam(TeamModel model)
         {
             using (IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
             {
@@ -63,7 +61,6 @@ namespace TrackerLibrary.DataAccess
                     p.Add("@PersonId", tm.Id);
                     connection.Execute("SELECT spTeamMembers_Insert(@TeamId, @PersonId);", p);
                 }
-                return model;
             }
         }
 
@@ -75,6 +72,7 @@ namespace TrackerLibrary.DataAccess
                 SaveTournamentPrizes(connection, model);
                 SaveTournamentEntries(connection, model);
                 SaveTournamentRounds(connection, model);
+                TournamentLogic.UpdateTournamentResults(model);
             }
         }
 
@@ -250,7 +248,7 @@ namespace TrackerLibrary.DataAccess
                 {
                     p.Add("@id", model.Id);
                     p.Add("@WinnerId", model.Winner.Id);
-                    connection.Execute("SELECT spMatchups_Update(@WinnerId, @id);", p);
+                    connection.Execute("SELECT spMatchups_Update(@id,@WinnerId);", p);
                 }
                 foreach (MatchupEntryModel entry in model.Entries)
                 {
@@ -264,6 +262,16 @@ namespace TrackerLibrary.DataAccess
                     }
                 }
             }
+        }
+
+        public void CompleteTournament(TournamentModel model)
+        {
+           using(IDbConnection connection = new NpgsqlConnection(GlobalConfig.CnnString(db)))
+           {
+                var p = new DynamicParameters();
+                p.Add("@id", model.Id);
+                connection.Execute("SELECT spTournaments_Complete(@id);", p);
+           }
         }
     }
 }

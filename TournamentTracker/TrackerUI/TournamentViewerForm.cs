@@ -13,7 +13,10 @@ namespace TrackerUI
         public TournamentViewerForm(TournamentModel tournamentModel)
         {
             InitializeComponent();
+
             _tournamentModel = tournamentModel;
+
+            _tournamentModel.OnTournamentComplete += Tourament_OnTournamentComplete;
             WireUpLists();
 
             if (_tournamentModel.Rounds == null || !_tournamentModel.Rounds.Any())
@@ -23,6 +26,11 @@ namespace TrackerUI
             }
             LoadFormData();
             LoadRounds();
+        }
+
+        private void Tourament_OnTournamentComplete(object? sender, DateTime e)
+        {
+            this.Close();
         }
 
         private void LoadFormData()
@@ -161,56 +169,41 @@ namespace TrackerUI
             MatchupModel m = (MatchupModel)matchupListBox.SelectedItem;
             double teamOneScore = 0;
             double teamTwoScore = 0;
-            if (m.Entries.Count > 0 && m.Entries[0].TeamCompeting != null)
-            {
-                if (!double.TryParse(teamOneScoreValue.Text, out teamOneScore))
+            for(int i=0; i < m.Entries.Count; i++) {
+                if (i == 0)
                 {
-                    MessageBox.Show("Please enter a valid score for team one.");
-                    return;
-                }
-                m.Entries[0].Score = teamOneScore;
-            }
-
-            if (m.Entries.Count > 1 && m.Entries[1].TeamCompeting != null)
-            {
-                if (!double.TryParse(teamTwoScoreValue.Text, out teamTwoScore))
-                {
-                    MessageBox.Show("Please enter a valid score for team two.");
-                    return;
-                }
-                m.Entries[1].Score = teamTwoScore;
-            }
-
-            if (teamOneScore > teamTwoScore)
-            {
-                m.Winner = m.Entries[0].TeamCompeting;
-            }
-            else if (teamTwoScore > teamOneScore)
-            {
-                m.Winner = m.Entries[1].TeamCompeting;
-            }
-            else
-            {
-                MessageBox.Show("We do not allow ties in this application.");
-                return;
-            }
-
-            GlobalConfig.Connection.UpdateMatchup(m);
-            foreach (var round in _tournamentModel.Rounds)
-            {
-                foreach (var matchup in round.Matchups)
-                {
-                    foreach (var entry in matchup.Entries)
+                    if (double.TryParse(teamOneScoreValue.Text, out teamOneScore))
                     {
-                        if (entry.ParentMatchup != null && entry.ParentMatchup.Id == m.Id)
-                        {
-                            entry.TeamCompeting = m.Winner;
-                            GlobalConfig.Connection.UpdateMatchup(matchup);
-                        }
+                        m.Entries[i].Score = teamOneScore;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please enter a valid score for team 1.");
+                        return;
+                    }
+                }
+                if (i == 1)
+                {
+                    if (double.TryParse(teamTwoScoreValue.Text, out teamTwoScore))
+                    {
+                        m.Entries[i].Score = teamTwoScore;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please enter a valid score for team 2.");
+                        return;
                     }
                 }
             }
-
+            try
+            {
+                TournamentLogic.UpdateTournamentResults(_tournamentModel);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"The application had the following error: {ex.Message}");
+                return;
+            }
             LoadMatchups((int)roundDropDown.SelectedItem);
         }
     }

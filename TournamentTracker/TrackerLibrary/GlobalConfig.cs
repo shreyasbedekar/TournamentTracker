@@ -25,13 +25,11 @@ namespace TrackerLibrary
             TextConnectorProcessor.Initialize(config);
             if (db == DatabaseType.Postgres)
             {
-                // TODO - Set up the SQL Connector properly
                 PostgresConnector postgres = new PostgresConnector();
                 Connection =postgres;
             }
             else if (db == DatabaseType.TextFile)
             {
-                // TODO - Create the Text Connection
                 TextConnector text = new TextConnector();
                 Connection = text;
             }
@@ -39,6 +37,11 @@ namespace TrackerLibrary
         public static string CnnString(string name)
         {
             return _config.GetConnectionString(name);
+        }
+
+        public static string AppKeyLookup(string key)
+        {
+            return _config[key];
         }
     }
 }

@@ -10,6 +10,8 @@ namespace TrackerLibrary.Models
 {
     public class TournamentModel
     {
+        public event EventHandler<DateTime> OnTournamentComplete;
+
         [Key]
         [Column("id")]
         public int Id { get; set; }
@@ -20,5 +22,10 @@ namespace TrackerLibrary.Models
         public List<TeamModel> EnteredTeams { get; set; } = new List<TeamModel>();
         public List<PrizeModel> Prizes { get; set; } = new List<PrizeModel>();
         public List<RoundModel> Rounds { get; set; } = new List<RoundModel>();
+
+        public void CompleteTournament()
+        {
+            OnTournamentComplete?.Invoke(this, DateTime.Now);
+        }
     }
 }
